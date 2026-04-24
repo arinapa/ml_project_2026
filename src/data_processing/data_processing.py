@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-
+from sklearn.preprocessing import OneHotEncoder
 
 
 
@@ -43,6 +43,33 @@ def validate_data(df: pd.DataFrame) -> None:
 
 def save_data(df: pd.DataFrame, path: str) -> None:
     df.to_csv(path, index=False)
+
+
+def make_data_from_faculty(df : pd.DataFrame, faculty: str) -> None:
+    df_baseline = df[df['faculty'] == faculty]
+
+    ohe = OneHotEncoder(sparse_output=False)
+
+    df_baseline_encoded = df_baseline.pivot_table(
+        index='student_id_hash',
+        columns=['course', 'module', 'subject_name', 'exam_type'],
+        values='grade_10',
+        aggfunc = 'mean'
+    )
+
+    df_baseline_encoded.columns = [
+        "_".join(map(str, col)).strip()
+        for col in df_baseline_encoded.columns
+    ]
+    df_baseline_encoded = df_baseline_encoded.reset_index()
+
+    df_baseline_encoded = df_baseline_encoded.merge(
+        df_baseline[['student_id_hash', 'program', 'place_type', 'student_status']],
+        on='student_id_hash',
+        how='left'
+    )
+
+    return df_baseline_encoded
 
 
 def main():
