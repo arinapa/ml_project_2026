@@ -1,0 +1,61 @@
+import pandas as pd
+import numpy as np
+
+
+
+
+def load_data(path: str) -> pd.DataFrame:
+    return pd.read_csv(path, sep = ';')
+
+
+def clean_data(df: pd.DataFrame) -> pd.DataFrame:
+    
+    df = df.drop_duplicates()
+    df = df.replace({'\\N' : np.nan, '0' : 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, 
+                     '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, '2022' : 2022}, inplace=True)
+
+    return df
+
+
+
+
+def process_data(df: pd.DataFrame) -> pd.DataFrame:
+    inconsistent = df.groupby('student_id_hash')['student_status'].nunique()
+    bad_ids = inconsistent[inconsistent > 1].index
+    df_clean = df[~df['student_id_hash'].isin(bad_ids)]
+    
+
+    df_clean = df_clean.drop(columns=['subject_unit'])
+    df_clean= df_clean.dropna()
+
+    # students_info = df_clean[['student_id_hash', 'campus', 'group', 'faculty', 'place_type', 'program','education_level', 'student_status' ]].copy()
+    
+
+    return df_clean
+
+def drop_columns(df: pd.DataFrame) -> pd.DataFrame:
+    df_clean = df.drop(columns=['campus', 'group', 'faculty', 'place_type', 'program','education_level', 'student_status']) 
+    return df_clean
+
+def validate_data(df: pd.DataFrame) -> None:
+    assert df['student_id_hash'].notna().all()
+
+
+def save_data(df: pd.DataFrame, path: str) -> None:
+    df.to_csv(path, index=False)
+
+
+def main():
+    df = load_data('../data/raw/grades.csv')
+    validate_data(df)
+    df = clean_data(df)
+    df = process_data(df)
+    df = drop_columns(df)
+
+    
+    # save_data(df, "output.csv")
+    return df
+
+
+if __name__ == "__main__":
+    main()
