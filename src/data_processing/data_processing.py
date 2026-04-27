@@ -70,7 +70,31 @@ def make_data_from_faculty(df : pd.DataFrame, faculty: str) -> None:
     )
     df_baseline_encoded = df_baseline_encoded.drop_duplicates()
     return df_baseline_encoded
+def make_data_from_program(df : pd.DataFrame, program: str) -> None:
+    df_baseline = df[df['program'] == program]
 
+    
+
+    df_baseline_encoded = df_baseline.pivot_table(
+        index='student_id_hash',
+        columns=['course', 'module', 'subject_name', 'exam_type'],
+        values='grade_10',
+        aggfunc = 'mean'
+    )
+
+    df_baseline_encoded.columns = [
+        "_".join(map(str, col)).strip()
+        for col in df_baseline_encoded.columns
+    ]
+    df_baseline_encoded = df_baseline_encoded.reset_index()
+
+    df_baseline_encoded = df_baseline_encoded.merge(
+        df_baseline[['student_id_hash', 'place_type', 'student_status']],
+        on='student_id_hash',
+        how='left'
+    )
+    df_baseline_encoded = df_baseline_encoded.drop_duplicates()
+    return df_baseline_encoded
 
 def main():
     df = load_data('../data/raw/grades.csv')
