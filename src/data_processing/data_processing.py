@@ -96,11 +96,7 @@ def make_data_from_faculty(df : pd.DataFrame, faculty: str) -> None:
     df_baseline_encoded = df_baseline_encoded.drop_duplicates()
     return df_baseline_encoded
 
-<<<<<<< HEAD
 
-
-=======
->>>>>>> c4e2095211f7d8e1d99ae5400ce4ae3b9d89bc3b
 def make_data_from_program(df : pd.DataFrame, program: str) -> None:
     df_baseline = df[df['program'] == program]
 
@@ -127,8 +123,6 @@ def make_data_from_program(df : pd.DataFrame, program: str) -> None:
     df_baseline_encoded = df_baseline_encoded.drop_duplicates()
     return df_baseline_encoded
 
-<<<<<<< HEAD
-=======
 def str_to_int_stadent_status (df : pd.DataFrame):
     df["student_status"] = df["student_status"].map({
         "study": 0,
@@ -137,7 +131,7 @@ def str_to_int_stadent_status (df : pd.DataFrame):
         "leave" : 3
     })
     return df
->>>>>>> c4e2095211f7d8e1d99ae5400ce4ae3b9d89bc3b
+
 
 def main():
     df = load_data('../data/raw/grades.csv')
