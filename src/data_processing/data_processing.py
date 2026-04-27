@@ -47,17 +47,21 @@ def save_data(df: pd.DataFrame, path: str) -> None:
 def make_features(df : pd.DataFrame) -> None:
     result = []
     
-    for student_hash, group in df.groupby('student_hash'):
+    for student_id_hash, group in df.groupby('student_id_hash'):
         grades = group['grade_10'].tolist()
         avg_grade = sum(grades) / len(grades)
+
         
         
         
         result.append({
-            'student_hash': student_hash,
+            'student__id_hash': student__id_hash,
             'grades_list': grades,
-            'avg_grade': avg_grade
+            'avg_grade': avg_grade,
+            'student_status': df[df['student_id_hash'] == student_id_hash].student_status
         })
+
+    
     
     return pd.DataFrame(result)
 
@@ -91,6 +95,9 @@ def make_data_from_faculty(df : pd.DataFrame, faculty: str) -> None:
     )
     df_baseline_encoded = df_baseline_encoded.drop_duplicates()
     return df_baseline_encoded
+
+
+
 def make_data_from_program(df : pd.DataFrame, program: str) -> None:
     df_baseline = df[df['program'] == program]
 
@@ -116,6 +123,7 @@ def make_data_from_program(df : pd.DataFrame, program: str) -> None:
     )
     df_baseline_encoded = df_baseline_encoded.drop_duplicates()
     return df_baseline_encoded
+
 
 def main():
     df = load_data('../data/raw/grades.csv')
