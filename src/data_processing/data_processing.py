@@ -64,7 +64,7 @@ def make_data_from_faculty(df : pd.DataFrame, faculty: str) -> None:
     df_baseline_encoded = df_baseline_encoded.reset_index()
 
     df_baseline_encoded = df_baseline_encoded.merge(
-        df_baseline[['student_id_hash', 'program', 'place_type', 'student_status']],
+        df_baseline[['student_id_hash', 'place_type', 'student_status']],
         on='student_id_hash',
         how='left'
     )
