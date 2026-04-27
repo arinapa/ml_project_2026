@@ -44,7 +44,7 @@ def validate_data(df: pd.DataFrame) -> None:
 def save_data(df: pd.DataFrame, path: str) -> None:
     df.to_csv(path, index=False)
 
-def make_features(df : pd.DataFrame) -> None:
+def make_features(df : pd.DataFrame) -> pd.DataFrame:
     result = []
     
     for student_id_hash, group in df.groupby('student_id_hash'):
@@ -52,13 +52,13 @@ def make_features(df : pd.DataFrame) -> None:
         avg_grade = sum(grades) / len(grades)
 
         
-        
+        student_status = group['student_status'].iloc[0]
         
         result.append({
             'student__id_hash': student_id_hash,
             'grades_list': grades,
             'avg_grade': avg_grade,
-            'student_status': df[df['student_id_hash'] == student_id_hash].student_status
+            'student_status': student_status
         })
 
     
