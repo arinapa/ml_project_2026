@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import OneHotEncoder
+
 
 
 
@@ -48,7 +48,7 @@ def save_data(df: pd.DataFrame, path: str) -> None:
 def make_data_from_faculty(df : pd.DataFrame, faculty: str) -> None:
     df_baseline = df[df['faculty'] == faculty]
 
-    ohe = OneHotEncoder(sparse_output=False)
+    
 
     df_baseline_encoded = df_baseline.pivot_table(
         index='student_id_hash',
