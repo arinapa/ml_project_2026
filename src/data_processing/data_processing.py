@@ -44,33 +44,29 @@ def validate_data(df: pd.DataFrame) -> None:
 def save_data(df: pd.DataFrame, path: str) -> None:
     df.to_csv(path, index=False)
 
-def make_data(df : pd.DataFrame) -> None:
-    df_baseline = df
+def make_features(df : pd.DataFrame) -> None:
+    result = []
+    
+    for student_hash, group in df.groupby('student_hash'):
+        grades = group['grade_10'].tolist()
+        avg_grade = sum(grades) / len(grades)
+        
+        
+        
+        result.append({
+            'student_hash': student_hash,
+            'grades_list': grades,
+            'avg_grade': avg_grade
+        })
+    
+    return pd.DataFrame(result)
+
 
     
+    
+    
 
-    df_baseline_encoded = df_baseline.pivot_table(
-        index='student_id_hash',
-        columns=['course', 'module', 'subject_name', 'exam_type'],
-        values='grade_10',
-        aggfunc = 'mean'
-    )
-
-    df_baseline_encoded.columns = [
-        "_".join(map(str, col)).strip()
-        for col in df_baseline_encoded.columns
-    ]
-    df_baseline_encoded = df_baseline_encoded.reset_index()
-
-    df_baseline_encoded = df_baseline_encoded.merge(
-        df_baseline[['student_id_hash', 'place_type', 'student_status']],
-        on='student_id_hash',
-        how='left'
-    )
-    df_baseline_encoded = df_baseline_encoded.drop_duplicates()
-    return df_baseline_encoded
-
-def make_data_from_faculty(df : pd.DataFrame, faculty: str) -> pd.DataFrame:
+def make_data_from_faculty(df : pd.DataFrame, faculty: str) -> None:
     df_baseline = df[df['faculty'] == faculty]
 
     
@@ -96,7 +92,7 @@ def make_data_from_faculty(df : pd.DataFrame, faculty: str) -> pd.DataFrame:
     df_baseline_encoded = df_baseline_encoded.drop_duplicates()
     return df_baseline_encoded
 
-def make_data_from_program(df : pd.DataFrame, program: str) -> pd.DataFrame:
+def make_data_from_program(df : pd.DataFrame, program: str) -> None:
     df_baseline = df[df['program'] == program]
 
     
