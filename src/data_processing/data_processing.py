@@ -68,16 +68,16 @@ def make_data_from_faculty(df : pd.DataFrame, faculty: str) -> None:
         on='student_id_hash',
         how='left'
     )
-
+    df_baseline_encoded = df_baseline_encoded.drop_duplicates()
     return df_baseline_encoded
 
 
 def main():
     df = load_data('../data/raw/grades.csv')
-    validate_data(df)
-    df = clean_data(df)
-    df = process_data(df)
-    df = drop_columns(df)
+    # validate_data(df)
+    # df = clean_data(df)
+    # df = process_data(df)
+    # df = drop_columns(df)
 
     
     # save_data(df, "output.csv")
