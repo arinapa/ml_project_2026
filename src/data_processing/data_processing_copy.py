@@ -5,7 +5,7 @@ import numpy as np
 
 
 def load_data(path: str) -> pd.DataFrame:
-    return pd.read_csv(path, sep = ';')
+    return pd.read_csv(path)
 
 
 def clean_data(df: pd.DataFrame) -> pd.DataFrame:
@@ -128,7 +128,7 @@ def str_to_int_stadent_status (df : pd.DataFrame):
     return df
 
 def main():
-    df = load_data('../data/raw/grades.csv')
+    df = load_data('../data/raw/design_3_course.csv')
     # validate_data(df)
     # df = clean_data(df)
     # df = process_data(df)
