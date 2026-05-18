@@ -251,7 +251,7 @@ def make_features_for_status(df : pd.DataFrame) -> pd.DataFrame:
         
         
         result.append({
-            'student__id_hash': student_id_hash,
+            'student_id_hash': student_id_hash,
             # 'grades_list': grades,
             'avg_grade': avg_grade,
             # 'median_grade': statistics.median(grades),
