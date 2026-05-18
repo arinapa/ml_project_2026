@@ -4,11 +4,43 @@ import numpy as np
 
 
 
-def load_data(path: str) -> pd.DataFrame:
+def load_data(path: str = '../data/raw/grades.csv') -> pd.DataFrame:
+
+    
+    """
+    Загружает датасет с сепаратором ';'
+
+    Parameters
+
+    path : str
+        Путь до файла .csv по умолчанию = '../data/raw/grades.csv'
+
+
+    Returns
+    pd.DataFrame
+   
+    """
     return pd.read_csv(path, sep = ';')
 
 
 def clean_data(df: pd.DataFrame) -> pd.DataFrame:
+
+    """
+    Удаляет дубликаты строк
+    Меняет строковые '\\N' на np.nan, числа в виде строк в int
+    Меняет nan в колонке  'absence_status' на 'attendance' при наличии оценки за экзамен
+
+    Parameters
+
+    df: pd.DataFrame
+        Датафрейм для обработки
+
+
+    Returns
+    pd.DataFrame
+        Обработанный датафрейм
+   
+    """
     
     df = df.drop_duplicates()
     
@@ -25,6 +57,23 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def process_data(df: pd.DataFrame) -> pd.DataFrame:
+
+    """
+    Удаляет записи со студентами, имеющими более 1 статуса 
+    Удаляет колонку 'subject_unit'
+    Удаляет строки с nan
+
+    Parameters
+
+    df: pd.DataFrame
+        Датафрейм для обработки
+
+
+    Returns
+    pd.DataFrame
+        Обработанный датафрейм
+   
+    """
     inconsistent = df.groupby('student_id_hash')['student_status'].nunique()
     bad_ids = inconsistent[inconsistent > 1].index
     df_clean = df[~df['student_id_hash'].isin(bad_ids)]
@@ -38,102 +87,70 @@ def process_data(df: pd.DataFrame) -> pd.DataFrame:
 
     return df_clean
 
-def drop_columns(df: pd.DataFrame) -> pd.DataFrame:
-    df_clean = df.drop(columns=['campus', 'group', 'faculty', 'place_type', 'program','education_level', 'student_status']) 
-    return df_clean
+def drop_columns(df: pd.DataFrame, delete_columns: list) -> pd.DataFrame:
+    """
+    Удаляет колонки по списку 
 
-def validate_data(df: pd.DataFrame) -> None:
-    assert df['student_id_hash'].notna().all()
+    Parameters
+
+    df: pd.DataFrame
+        Датафрейм для обработки
+    delete_columns: list
+        Список колонок для удаления
+
+
+    Returns
+    pd.DataFrame
+        Обработанный датафрейм
+   
+    """
+    df_clean = df.drop(columns=delete_columns) 
+    return df_clean
 
 
 def save_data(df: pd.DataFrame, path: str) -> None:
+    """
+    Сохраняет датафрейм по указанному пути
+
+    Parameters
+
+    df: pd.DataFrame
+        Датафрейм для сохранения 
+    path: str
+        Путь для сохранения
+   
+    """
     df.to_csv(path, index=False)
 
-def make_features(df : pd.DataFrame) -> pd.DataFrame:
-    result = []
-    
-    for student_id_hash, group in df.groupby('student_id_hash'):
-        grades = group['grade_10'].tolist()
-        avg_grade = sum(grades) / len(grades)
-
-        
-        student_status = group['student_status'].iloc[0]
-        
-        result.append({
-            'student__id_hash': student_id_hash,
-            'grades_list': grades,
-            'avg_grade': avg_grade,
-            'student_status': student_status
-        })
-
-    
-    
-    return pd.DataFrame(result)
 
 
     
     
     
 
-def make_data_from_faculty(df : pd.DataFrame, faculty: str) -> None:
-    df_baseline = df[df['faculty'] == faculty]
 
+def str_to_int_student_status (df : pd.DataFrame):
+    """
+    Заменяет "student_status" на два типа 0 -- выпустился или учится, 1 -- отчислили или отчислился
+
+    Parameters
+
+    df: pd.DataFrame
+        Датафрейм для обработки
     
 
-    df_baseline_encoded = df_baseline.pivot_table(
-        index='student_id_hash',
-        columns=['course', 'module', 'subject_name', 'exam_type'],
-        values='grade_10',
-        aggfunc = 'mean'
-    )
 
-    df_baseline_encoded.columns = [
-        "_".join(map(str, col)).strip()
-        for col in df_baseline_encoded.columns
-    ]
-    df_baseline_encoded = df_baseline_encoded.reset_index()
+    Returns
+    pd.DataFrame
+        Обработанный датафрейм
+   
+    """
 
-    df_baseline_encoded = df_baseline_encoded.merge(
-        df_baseline[['student_id_hash', 'student_status']],
-        on='student_id_hash',
-        how='left'
-    )
-    df_baseline_encoded = df_baseline_encoded.drop_duplicates()
-    return df_baseline_encoded
-
-
-def make_data_from_program(df : pd.DataFrame, program: str) -> None:
-    df_baseline = df[df['program'] == program]
-
-    
-
-    df_baseline_encoded = df_baseline.pivot_table(
-        index='student_id_hash',
-        columns=['course', 'module', 'subject_name', 'exam_type'],
-        values='grade_10',
-        aggfunc = 'mean'
-    )
-
-    df_baseline_encoded.columns = [
-        "_".join(map(str, col)).strip()
-        for col in df_baseline_encoded.columns
-    ]
-    df_baseline_encoded = df_baseline_encoded.reset_index()
-
-    df_baseline_encoded = df_baseline_encoded.merge(
-        df_baseline[['student_id_hash', 'student_status']],
-        on='student_id_hash',
-        how='left'
-    )
-    df_baseline_encoded = df_baseline_encoded.drop_duplicates()
-    return df_baseline_encoded
-
-def str_to_int_stadent_status (df : pd.DataFrame):
     df["student_status"] = df["student_status"].map({
         "study": 0,
-        "graduated": 1,
-        "expelled": 2,
-        "leave" : 3
+        "graduated": 0,
+        "expelled": 1,
+        "leave" : 1
     })
     return df
 

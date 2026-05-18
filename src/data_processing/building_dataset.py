@@ -213,6 +213,48 @@ def fill_na_knn(
 
     return result_df
 
+
+def make_features(df : pd.DataFrame) -> pd.DataFrame:
+    """
+    Создает датафрейм для предсказания статуса студента
+
+    Parameters
+    df : pd.DataFrame
+        Исходный датафрейм
+
+    
+
+    Returns
+    pd.DataFrame
+        Датафрейм с колонками :
+            'student__id_hash'
+            'grades_list'
+            'avg_grade'
+            'student_status'
+
+    """
+    
+    result = []
+    
+    for student_id_hash, group in df.groupby('student_id_hash'):
+        grades = group['grade_10'].tolist()
+        avg_grade = sum(grades) / len(grades)
+
+        
+        student_status = group['student_status'].iloc[0]
+        
+        result.append({
+            'student__id_hash': student_id_hash,
+            'grades_list': grades,
+            'avg_grade': avg_grade,
+            'student_status': student_status
+        })
+
+    
+    
+    return pd.DataFrame(result)
+
+
 # def main():
 
 #     df = pd.read_csv("data/raw/grades.csv")
