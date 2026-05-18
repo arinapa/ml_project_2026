@@ -45,7 +45,7 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     df = df.drop_duplicates()
     
     df = df.replace({'\\N' : np.nan, '0' : 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, 
-                     '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, '2022' : 2022}, inplace=True)
+                     '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, '2022' : 2022})
     df.loc[
     df['grade_10'].isin(range(11)) & df['absence_status'].isna(),
         'absence_status'
