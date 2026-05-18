@@ -289,6 +289,44 @@ def make_features_for_status(df : pd.DataFrame) -> pd.DataFrame:
     
     return df_final
 
+def make_features_for_grade(df : pd.DataFrame, course : int) -> pd.DataFrame:
+    """
+    Создает датафрейм для предсказания оценки студента в 4 модуле
+
+    Parameters
+    df : pd.DataFrame
+        Исходный датафрейм
+    course : int
+        Номер курса, 4 модуль которого предсказываем
+    
+
+    Returns
+    pd.DataFrame
+        Датафрейм с добавленными колонками:
+           'mean_1_grade', 'mean_2_grade', 'mean_3_grade' - среднее по модулям 
+           'std_1_grade', 'std_2_grade', 'std_3_grade' - среднее по модулям
+           'trend_1-2', 'trend_2-3' - изменение оценок по модулям
+           'low_grades_ratio' - доля плохих оценок за 2 модуль
+
+    """
+    module3_cols = df.filter(like=f'{course}_3_Дисциплина:').columns
+    module2_cols = df.filter(like=f'{course}_2_Дисциплина:').columns
+    module1_cols = df.filter(like=f'{course}_1_Дисциплина:').columns
+
+    df['mean_3_grade'] = df[module3_cols].mean(axis=1)
+    df['mean_2_grade'] = df[module2_cols].mean(axis=1)
+    df['mean_1_grade'] = df[module1_cols].mean(axis=1)
+
+    df['std_3_grade'] = df[module3_cols].std(axis=1)
+    df['std_2_grade'] = df[module2_cols].std(axis=1)
+    df['std_1_grade'] = df[module1_cols].std(axis=1)
+
+    df['trend_2-3'] = df[module3_cols].mean(axis=1) - df[module2_cols].mean(axis=1)
+    df['trend_1-2'] = df[module2_cols].mean(axis=1) - df[module1_cols].mean(axis=1)
+    df['low_grades_ratio'] = (df[module2_cols] < 4).mean(axis=1)
+    
+    return df
+
 
 # def main():
 
