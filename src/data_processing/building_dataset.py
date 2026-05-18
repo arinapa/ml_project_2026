@@ -289,7 +289,7 @@ def make_features_for_status(df : pd.DataFrame) -> pd.DataFrame:
     
     return df_final
 
-def make_features_for_grade(df : pd.DataFrame, course : int) -> pd.DataFrame:
+def make_features_for_grade(df : pd.DataFrame, course : int, categorical_cols : list = None) -> pd.DataFrame:
     """
     Создает датафрейм для предсказания оценки студента в 4 модуле
 
@@ -298,6 +298,8 @@ def make_features_for_grade(df : pd.DataFrame, course : int) -> pd.DataFrame:
         Исходный датафрейм
     course : int
         Номер курса, 4 модуль которого предсказываем
+     categorical_cols : list
+        Список столбцов, которые надо зарбить через OneHotEncoder
     
 
     Returns
@@ -307,6 +309,7 @@ def make_features_for_grade(df : pd.DataFrame, course : int) -> pd.DataFrame:
            'std_1_grade', 'std_2_grade', 'std_3_grade' - среднее по модулям
            'trend_1-2', 'trend_2-3' - изменение оценок по модулям
            'low_grades_ratio' - доля плохих оценок за 2 модуль
+            И разбитые через OneHotEncoder столбцы
 
     """
     module3_cols = df.filter(like=f'{course}_3_Дисциплина:').columns
@@ -325,6 +328,16 @@ def make_features_for_grade(df : pd.DataFrame, course : int) -> pd.DataFrame:
     df['trend_1-2'] = df[module2_cols].mean(axis=1) - df[module1_cols].mean(axis=1)
     df['low_grades_ratio'] = (df[module2_cols] < 4).mean(axis=1)
     
+    if categorical_cols:
+        encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
+        encoded_array = encoder.fit_transform(df[categorical_cols])
+
+        encoded_df = pd.DataFrame(
+            encoded_array,
+            columns=encoder.get_feature_names_out(categorical_cols)
+        )
+        df = pd.concat([df.drop(columns=categorical_cols), encoded_df], axis=1)
+
     return df
 
 
