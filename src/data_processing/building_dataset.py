@@ -294,8 +294,8 @@ def make_features_for_status(df : pd.DataFrame) -> pd.DataFrame:
 
 #     df = pd.read_csv("data/raw/grades.csv")
 #     df_program = make_data_from_program(df, 'Международный бакалавриат по бизнесу и экономике', [])
-#     df_clean = nan_cleaner(df, printer=True)
-#     df_clean = fill_na_knn(df_clean, 5, True)
+#     df_clean = nan_cleaner(df_clean_mb, 0.3, 600,10, True)
+#     df_clean = fill_na_knn(df_cleaned_nan_mb, 5, drop_col=['student_id_hash'], printer = True)
 
 #     df_clean.to_csv("data/clean/prob1.csv", index=False)
 
