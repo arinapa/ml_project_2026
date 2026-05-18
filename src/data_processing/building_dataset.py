@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.impute import KNNImputer
+from sklearn.preprocessing import OneHotEncoder
 
 
 def make_data_from_program(df : pd.DataFrame, program: str, addictional_columns: list, subjects_list=None) -> None:\
@@ -214,7 +215,7 @@ def fill_na_knn(
     return result_df
 
 
-def make_features(df : pd.DataFrame) -> pd.DataFrame:
+def make_features_for_status(df : pd.DataFrame) -> pd.DataFrame:
     """
     Создает датафрейм для предсказания статуса студента
 
@@ -228,8 +229,13 @@ def make_features(df : pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         Датафрейм с колонками :
             'student__id_hash'
-            'grades_list'
             'avg_grade'
+            'count_grades' -- количество оценок
+            'proportion_retake' -- доля пересдач 
+            'proportion_retake_com' -- доля пересдач с комисией
+            'program' -- категория (OneHotEncoder)
+            'course' -- категория (OneHotEncoder)
+            'place_type' -- категория (OneHotEncoder)
             'student_status'
 
     """
@@ -243,16 +249,45 @@ def make_features(df : pd.DataFrame) -> pd.DataFrame:
         
         student_status = group['student_status'].iloc[0]
         
+        
         result.append({
             'student__id_hash': student_id_hash,
-            'grades_list': grades,
+            # 'grades_list': grades,
             'avg_grade': avg_grade,
+            # 'median_grade': statistics.median(grades),
+            # 'min_grade': min(grades),
+            # 'max_grade': max(grades),
+            'count_grades': len(grades),
+            # 'count_retake': len(group[group['exam_type'] == 'Пересдача']),
+            'proportion_retake': len(group[group['exam_type'] == 'Пересдача'])/len(grades),
+            # 'count_retake_com': len(group[group['exam_type'] == 'Пересдача с комиссией']),
+            'proportion_retake_com': len(group[group['exam_type'] == 'Пересдача с комиссией'])/len(grades),
+            'program' : group['program'].iloc[0],
+            'course': group['course'].iloc[0],
+            'place_type': group['place_type'].iloc[0],
             'student_status': student_status
+
         })
+    df_encoded = pd.DataFrame(result)
+    df_encoded['course'] = df_encoded['course'].astype('category')
+    
+    categorical_cols = ['course', 'program', 'place_type']
+
+
+    encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
+    encoded_array = encoder.fit_transform(df_encoded[categorical_cols])
+
+    encoded_df = pd.DataFrame(
+                encoded_array,
+                columns=encoder.get_feature_names_out(categorical_cols)
+    )
+
+    df_final = pd.concat([df_encoded.drop(columns=categorical_cols), encoded_df], axis=1)
+    df_final
 
     
     
-    return pd.DataFrame(result)
+    return df_final
 
 
 # def main():
