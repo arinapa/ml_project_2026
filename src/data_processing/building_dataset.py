@@ -2,8 +2,9 @@
 import pandas as pd
 import numpy as np
 from sklearn.impute import KNNImputer
-from sklearn.preprocessing import OneHotEncoder
-
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.compose import ColumnTransformer
+from category_encoders import TargetEncoder, OrdinalEncoder
 
 def make_data_from_program(df : pd.DataFrame, program: str, addictional_columns: list, subjects_list=None) -> None:\
 
@@ -215,6 +216,7 @@ def fill_na_knn(
     return result_df
 
 
+
 def make_features_for_status(df : pd.DataFrame) -> pd.DataFrame:
     """
     Создает датафрейм для предсказания статуса студента
@@ -233,9 +235,9 @@ def make_features_for_status(df : pd.DataFrame) -> pd.DataFrame:
             'count_grades' -- количество оценок
             'proportion_retake' -- доля пересдач 
             'proportion_retake_com' -- доля пересдач с комисией
-            'program' -- категория (OneHotEncoder)
-            'course' -- категория (OneHotEncoder)
-            'place_type' -- категория (OneHotEncoder)
+            'program' -- категория 
+            'course' -- категория 
+            'place_type' -- категория 
             'student_status'
 
     """
@@ -271,23 +273,108 @@ def make_features_for_status(df : pd.DataFrame) -> pd.DataFrame:
     df_encoded = pd.DataFrame(result)
     df_encoded['course'] = df_encoded['course'].astype('category')
     
-    categorical_cols = ['course', 'program', 'place_type']
+    # categorical_cols = ['course', 'program', 'place_type']
 
 
-    encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
-    encoded_array = encoder.fit_transform(df_encoded[categorical_cols])
+    # encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
+    # encoded_array = encoder.fit_transform(df_encoded[categorical_cols])
 
-    encoded_df = pd.DataFrame(
-                encoded_array,
-                columns=encoder.get_feature_names_out(categorical_cols)
-    )
+    # encoded_df = pd.DataFrame(
+    #             encoded_array,
+    #             columns=encoder.get_feature_names_out(categorical_cols)
+    # )
 
-    df_final = pd.concat([df_encoded.drop(columns=categorical_cols), encoded_df], axis=1)
-    df_final
+    # df_final = pd.concat([df_encoded.drop(columns=categorical_cols), encoded_df], axis=1)
+    df_final = df_encoded
 
     
     
     return df_final
+
+
+
+   
+    
+def encoding(
+    df: pd.DataFrame,
+    method: str = "onehot",
+    categorical_cols: list = None,
+    target: str = None
+) -> pd.DataFrame:
+    """
+    Кодирует категориальные признаки в зависимости от выбранного метода.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Исходный датафрейм с признаками.
+        
+    method : str, default='onehot'
+        Способ кодирования категориальных признаков:
+        - 'onehot' : One-Hot Encoding (создаёт бинарные столбцы)
+        - 'label'  : Ordinal Encoding (заменяет категории числами)
+        - 'target' : Target Encoding (заменяет категории средним значением таргета)
+
+    categorical_cols : list, default=['course', 'program', 'place_type']
+        Список категориальных признаков, которые необходимо закодировать.
+
+    target : str, optional, default=None
+        Название целевой переменной.
+        Используется только при method='target'.
+
+    Returns
+    -------
+    pd.DataFrame
+        Датафрейм с закодированными признаками.
+
+        При method='onehot':
+            - исходные категориальные столбцы заменяются на набор бинарных колонок
+
+        При method='label':
+            - категориальные признаки заменяются числовыми значениями
+
+        При method='target':
+            - категориальные признаки заменяются значениями target encoding
+    """
+
+    if categorical_cols is None:
+        categorical_cols = ['course', 'program', 'place_type']
+
+    df = df.copy()
+
+    if method == "onehot":
+        encoder = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
+
+        encoded = encoder.fit_transform(df[categorical_cols])
+
+        encoded_df = pd.DataFrame(
+            encoded,
+            columns=encoder.get_feature_names_out(categorical_cols),
+            index=df.index
+        )
+
+        df = pd.concat([df.drop(columns=categorical_cols), encoded_df], axis=1)
+        return df
+
+    elif method == "label":
+        encoder = OrdinalEncoder()
+
+        df[categorical_cols] = encoder.fit_transform(df[categorical_cols])
+        return df
+
+
+    elif method == "target":
+        if target is None:
+            raise ValueError("For target encoding you must pass target column name")
+
+        encoder = TargetEncoder(cols=categorical_cols)
+
+        df[categorical_cols] = encoder.fit_transform(df[categorical_cols], df[target])
+        return df
+
+    else:
+        raise ValueError("Unknown encoding method: choose 'onehot', 'label', or 'target'")
+
 
 def make_features_for_grade(df : pd.DataFrame, course : int, categorical_cols : list = None) -> pd.DataFrame:
     """
